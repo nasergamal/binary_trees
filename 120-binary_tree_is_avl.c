@@ -16,7 +16,6 @@ int binary_tree_is_avl(const binary_tree_t *tree)
 	if (tree == NULL)
 		return (0);
 	b = binary_tree_h(tree->left) - binary_tree_h(tree->right);
-	printf("%d\n", b);
 	if (b > 1 || b < 0)
 		return (0);
 	return (check_function(tree));
