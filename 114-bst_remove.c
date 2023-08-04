@@ -3,7 +3,7 @@
 bst_t *min(bst_t *tree);
 bst_t *search(const bst_t *tree, int value);
 bst_t *successor(const bst_t *tree);
-
+void unlinker(bst_t *tree);
 /**
  * bst_remove - remove binary search tree's node and add inorder successor
  * @root: tree root
@@ -20,31 +20,61 @@ bst_t *bst_remove(bst_t *root, int value)
 	rmptr = search(root, value);
 	if (!rmptr)
 		return (NULL);
-	ptr = successor(rmptr);
-	if (ptr->parent)
-		ptr->parent->left = NULL;
-	ptr->parent = rmptr->parent;
-	if (ptr->parent)
+	if (rmptr->left && rmptr->right)
 	{
-		if (ptr->parent->left == rmptr)
-			ptr->parent->left = ptr;
-		else
-			ptr->parent->right = ptr;
+		ptr = successor(rmptr);
+		if (ptr)
+		{
+			if (ptr->parent->left == ptr)
+				ptr->parent->left = NULL;
+			else
+				ptr->parent->right = NULL;
+			rmptr->n = ptr->n;
+			free(ptr);
+			return (root);
+		}
+	}
+	unlinker(rmptr);
+	return (root);
+}
+/**
+ * unlinker - unlink all pointer to the node to be removed
+ * @tree: binary tree
+ *
+ * Return: void
+ */
+void unlinker(bst_t *tree)
+{
+	if (!(tree->left) && !(tree->right))
+	{
+		if (tree->parent && tree->parent->left == tree)
+			tree->parent->left = NULL;
+		else if (tree->parent && tree->parent->right == tree)
+			tree->parent->right = NULL;
+		free(tree);
+		return;
 	}
 	else
-		root = ptr;
-	if (rmptr->left)
 	{
-		ptr->left = rmptr->left;
-		ptr->left->parent = ptr;
+		if (!(tree->right))
+		{
+			tree->left->parent = tree->parent;
+			if (tree->parent->right == tree)
+				tree->parent->right = tree->left;
+			else if (tree->parent->left == tree)
+				tree->parent->left = tree->left;
+		}
+		else if (!(tree->left))
+		{
+			tree->right->parent = tree->parent;
+			if (tree->parent->right == tree)
+				tree->parent->right = tree->right;
+			else
+				tree->parent->left = tree->right;
+		}
+		free(tree);
+		return;
 	}
-	if (rmptr->right)
-	{
-		ptr->right = rmptr->right;
-		ptr->right->parent = ptr;
-	}
-	free(rmptr);
-	return (root);
 }
 
 /**
@@ -72,31 +102,12 @@ bst_t *search(const bst_t *tree, int value)
  */
 bst_t *successor(const bst_t *tree)
 {
-	bst_t *parent;
-
-	if (tree->right != NULL)
-		return (min(tree->right));
-	if (tree->left != NULL)
-		return (min(tree->left));
-	parent = tree->parent;
-	while (parent != NULL && tree == parent->right)
+	if (tree->right != NULL && tree->left != NULL)
 	{
-		tree = parent;
-		parent = parent->parent;
+		tree = tree->right;
+		while (tree->left != NULL)
+			tree = tree->left;
+		return ((bst_t *)tree);
 	}
-	return (parent);
-}
-/**
- * min - auxillary function for successor
- * @tree: binary tree
- *
- * Return: pointer to the node
- */
-bst_t *min(bst_t *tree)
-{
-	bst_t *current = tree;
-
-	while (current->left != NULL)
-		current = current->left;
-	return (current);
+	return (NULL);
 }
