@@ -3,7 +3,7 @@
 bst_t *min(bst_t *tree);
 bst_t *search(const bst_t *tree, int value);
 bst_t *successor(const bst_t *tree);
-void unlinker(bst_t *tree);
+bst_t *unlinker(bst_t *tree, bst_t *root);
 /**
  * bst_remove - remove binary search tree's node and add inorder successor
  * @root: tree root
@@ -34,17 +34,20 @@ bst_t *bst_remove(bst_t *root, int value)
 			return (root);
 		}
 	}
-	unlinker(rmptr);
+	root = unlinker(rmptr, root);
 	return (root);
 }
 /**
  * unlinker - unlink all pointer to the node to be removed
- * @tree: binary tree
+ * @tree: binary tree node
+ * @root: binary tree root
  *
  * Return: void
  */
-void unlinker(bst_t *tree)
+bst_t *unlinker(bst_t *tree, bst_t *root)
 {
+	bst_t *parent = tree->parent, *ptr = NULL;
+
 	if (!(tree->left) && !(tree->right))
 	{
 		if (tree->parent && tree->parent->left == tree)
@@ -52,17 +55,18 @@ void unlinker(bst_t *tree)
 		else if (tree->parent && tree->parent->right == tree)
 			tree->parent->right = NULL;
 		free(tree);
-		return;
+		return (root);
 	}
 	else
 	{
 		if (!(tree->right))
 		{
 			tree->left->parent = tree->parent;
-			if (tree->parent->right == tree)
+			if (tree->parent && tree->parent->right == tree)
 				tree->parent->right = tree->left;
-			else if (tree->parent->left == tree)
+			else if (tree->parent && tree->parent->left == tree)
 				tree->parent->left = tree->left;
+			ptr = tree->left;
 		}
 		else if (!(tree->left))
 		{
@@ -71,9 +75,12 @@ void unlinker(bst_t *tree)
 				tree->parent->right = tree->right;
 			else
 				tree->parent->left = tree->right;
+			ptr = tree->right;
 		}
 		free(tree);
-		return;
+		if (parent)
+			return (root);
+		return (ptr);
 	}
 }
 
